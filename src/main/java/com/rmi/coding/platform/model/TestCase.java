@@ -1,6 +1,11 @@
 package com.rmi.coding.platform.model;
 
-public class TestCase {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class TestCase implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private int id;
     private int problemId;
     private String input;
@@ -15,7 +20,6 @@ public class TestCase {
         this.expectedOutput = expectedOutput;
     }
 
-    // getters & setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

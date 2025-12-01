@@ -1,30 +1,60 @@
 package com.rmi.coding.platform.model;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class Contest {
+public class Contest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private int id;
     private String title;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private List<Integer> problemIds;
 
-    public Contest() {}
+    public Contest() {
+    }
 
     // getters & setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public String getTitle() {
+        return title;
+    }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public List<Integer> getProblemIds() { return problemIds; }
-    public void setProblemIds(List<Integer> problemIds) { this.problemIds = problemIds; }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public List<Integer> getProblemIds() {
+        return problemIds;
+    }
+
+    public void setProblemIds(List<Integer> problemIds) {
+        this.problemIds = problemIds;
+    }
 }

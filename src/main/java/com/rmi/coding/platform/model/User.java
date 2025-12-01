@@ -1,13 +1,17 @@
 package com.rmi.coding.platform.model;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class User {
+public class User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private int id;
     private String username;
     private String passwordHash;
     private String email;
-    private String role; // "user" hoặc "admin"
+    private String role;
     private LocalDateTime createdAt;
 
     public User() {}
@@ -21,7 +25,6 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    // getters & setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

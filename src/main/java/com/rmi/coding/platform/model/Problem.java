@@ -1,20 +1,25 @@
 package com.rmi.coding.platform.model;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
-public class Problem {
+public class Problem implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
     private int id;
     private String title;
     private String description;
     private String difficulty; // "Easy", "Medium", "Hard"
-    private String starterCode;
+    private Map<String, String> starterCode;
     private List<TestCase> testCases;
     private LocalDateTime createdAt;
 
     public Problem() {}
 
-    public Problem(int id, String title, String description, String difficulty, String starterCode, List<TestCase> testCases) {
+    public Problem(int id, String title, String description, String difficulty, Map<String, String> starterCode, List<TestCase> testCases) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,25 +29,59 @@ public class Problem {
         this.createdAt = LocalDateTime.now();
     }
 
-    // getters & setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public List<TestCase> getTestCases() {
+        return testCases;
+    }
 
-    public String getDifficulty() { return difficulty; }
-    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    public void setTestCases(List<TestCase> testCases) {
+        this.testCases = testCases;
+    }
 
-    public String getStarterCode() { return starterCode; }
-    public void setStarterCode(String starterCode) { this.starterCode = starterCode; }
+    public Map<String, String> getStarterCode() {
+        return starterCode;
+    }
 
-    public List<TestCase> getTestCases() { return testCases; }
-    public void setTestCases(List<TestCase> testCases) { this.testCases = testCases; }
+    public void setStarterCode(Map<String, String> starterCode) {
+        this.starterCode = starterCode;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
 }

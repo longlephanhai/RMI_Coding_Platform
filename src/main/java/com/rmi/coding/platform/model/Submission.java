@@ -24,7 +24,6 @@ public class Submission {
         this.submittedAt = LocalDateTime.now();
     }
 
-    // getters & setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
