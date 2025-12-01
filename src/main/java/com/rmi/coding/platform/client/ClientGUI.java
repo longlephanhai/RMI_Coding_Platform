@@ -13,7 +13,6 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Map;
 
 public class ClientGUI extends JFrame {
 
@@ -79,10 +78,12 @@ public class ClientGUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setBackground(new Color(245, 245, 245));
 
+        // Header welcome
         JLabel label = new JLabel("Welcome, " + loggedUser.getUsername() + "! Role: " + loggedUser.getRole());
         label.setFont(new Font("Arial", Font.BOLD, 22));
         panel.add(label, BorderLayout.NORTH);
 
+        // Table Problem
         String[] columns = {"ID", "Title", "Difficulty", "Action"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
@@ -90,7 +91,6 @@ public class ClientGUI extends JFrame {
                 return column == 3;
             }
         };
-
         JTable table = new JTable(model);
         table.setRowHeight(30);
 
@@ -184,10 +184,29 @@ public class ClientGUI extends JFrame {
                         ideFrame.setSize(900, 700);
                         ideFrame.setLocationRelativeTo(null);
 
+                        // Main panel
+                        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+                        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+                        // Description area
+                        JTextArea descArea = new JTextArea(problem.getDescription());
+                        descArea.setLineWrap(true);
+                        descArea.setWrapStyleWord(true);
+                        descArea.setEditable(false);
+                        descArea.setFont(new Font("Arial", Font.PLAIN, 14));
+                        descArea.setBackground(new Color(245, 245, 245));
+                        JScrollPane descScroll = new JScrollPane(descArea);
+                        descScroll.setBorder(BorderFactory.createTitledBorder("Description"));
+                        descScroll.setPreferredSize(new Dimension(880, 150));
+                        mainPanel.add(descScroll, BorderLayout.NORTH);
+
+                        // Code editor panel
                         MiniScriptIDEPanel idePanel = new MiniScriptIDEPanel();
                         idePanel.setStarterCode(problem.getStarterCode());
+//                        idePanel.setProblemId(problem.getId());
+                        mainPanel.add(idePanel, BorderLayout.CENTER);
 
-                        ideFrame.add(idePanel);
+                        ideFrame.add(mainPanel);
                         ideFrame.setVisible(true);
                     }
                 } catch (Exception ex) {
@@ -210,4 +229,5 @@ public class ClientGUI extends JFrame {
             super.fireEditingStopped();
         }
     }
+
 }
