@@ -203,7 +203,7 @@ public class ClientGUI extends JFrame {
                         // Code editor panel
                         MiniScriptIDEPanel idePanel = new MiniScriptIDEPanel();
                         idePanel.setStarterCode(problem.getStarterCode());
-//                        idePanel.setProblemId(problem.getId());
+                        idePanel.setCurrentProblemId(problem.getId());
                         mainPanel.add(idePanel, BorderLayout.CENTER);
 
                         ideFrame.add(mainPanel);

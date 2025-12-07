@@ -48,7 +48,6 @@ public class AdminGUI extends JFrame {
         panel.setBackground(new Color(245, 245, 245));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Form card
         JPanel formCard = new JPanel(new GridBagLayout());
         formCard.setBackground(Color.WHITE);
         formCard.setBorder(BorderFactory.createCompoundBorder(
@@ -61,23 +60,19 @@ public class AdminGUI extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField contestTitle = new JTextField();
-
         SpinnerDateModel startModel = new SpinnerDateModel(new Date(), null, null, Calendar.MINUTE);
         JSpinner startTime = new JSpinner(startModel);
         startTime.setEditor(new JSpinner.DateEditor(startTime, "yyyy-MM-dd HH:mm"));
-
         SpinnerDateModel endModel = new SpinnerDateModel(new Date(), null, null, Calendar.MINUTE);
         JSpinner endTime = new JSpinner(endModel);
         endTime.setEditor(new JSpinner.DateEditor(endTime, "yyyy-MM-dd HH:mm"));
 
-        // Problem Table
         String[] columns = {"Select", "ID", "Title", "Difficulty"};
         DefaultTableModel problemTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 return columnIndex == 0 ? Boolean.class : String.class;
             }
-
             @Override
             public boolean isCellEditable(int row, int column) {
                 return column == 0;
@@ -87,7 +82,6 @@ public class AdminGUI extends JFrame {
         JScrollPane problemScroll = new JScrollPane(problemTable);
         problemScroll.setPreferredSize(new Dimension(600, 200));
 
-        // Label và Refresh button
         JLabel selectedCountLabel = new JLabel("Selected problems: 0");
         JButton refreshBtn = new JButton("Refresh Problems");
         styleButton(refreshBtn, new Color(255, 165, 0));
@@ -101,25 +95,21 @@ public class AdminGUI extends JFrame {
         tablePanel.add(tableTopPanel, BorderLayout.NORTH);
         tablePanel.add(problemScroll, BorderLayout.CENTER);
 
-        // Layout form
         gbc.gridx = 0;
         gbc.gridy = 0;
         formCard.add(new JLabel("Title:"), gbc);
         gbc.gridx = 1;
         formCard.add(contestTitle, gbc);
-
         gbc.gridx = 0;
         gbc.gridy = 1;
         formCard.add(new JLabel("Start Time:"), gbc);
         gbc.gridx = 1;
         formCard.add(startTime, gbc);
-
         gbc.gridx = 0;
         gbc.gridy = 2;
         formCard.add(new JLabel("End Time:"), gbc);
         gbc.gridx = 1;
         formCard.add(endTime, gbc);
-
         gbc.gridx = 0;
         gbc.gridy = 3;
         formCard.add(new JLabel("Select Problems:"), gbc);
@@ -134,7 +124,6 @@ public class AdminGUI extends JFrame {
 
         panel.add(formCard);
 
-        // Table selection listener
         problemTableModel.addTableModelListener(e -> {
             int count = 0;
             for (int i = 0; i < problemTableModel.getRowCount(); i++) {
@@ -143,19 +132,15 @@ public class AdminGUI extends JFrame {
             selectedCountLabel.setText("Selected problems: " + count);
         });
 
-        // Load initial problems
         loadProblems(problemTableModel);
 
-        // Refresh button action
         refreshBtn.addActionListener(e -> loadProblems(problemTableModel));
 
-        // Create contest button action
         createContestBtn.addActionListener(e -> {
             try {
                 String title = contestTitle.getText().trim();
                 Date startDate = (Date) startTime.getValue();
                 Date endDate = (Date) endTime.getValue();
-
                 if (title.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Contest title cannot be empty!");
                     return;
@@ -189,9 +174,9 @@ public class AdminGUI extends JFrame {
                 contestTitle.setText("");
                 startTime.setValue(new Date());
                 endTime.setValue(new Date());
-                for (int i = 0; i < problemTableModel.getRowCount(); i++) problemTableModel.setValueAt(false, i, 0);
+                for (int i = 0; i < problemTableModel.getRowCount(); i++)
+                    problemTableModel.setValueAt(false, i, 0);
                 selectedCountLabel.setText("Selected problems: 0");
-
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error creating contest: " + ex.getMessage());
@@ -201,10 +186,9 @@ public class AdminGUI extends JFrame {
         return panel;
     }
 
-    // Hàm tiện ích load problems từ problemService
     private void loadProblems(DefaultTableModel problemTableModel) {
         try {
-            problemTableModel.setRowCount(0); // xóa cũ
+            problemTableModel.setRowCount(0);
             List<Problem> allProblems = problemService.listAllProblems();
             for (Problem p : allProblems) {
                 problemTableModel.addRow(new Object[]{false, String.valueOf(p.getId()), p.getTitle(), p.getDifficulty()});
@@ -214,7 +198,6 @@ public class AdminGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Error loading problems: " + e.getMessage());
         }
     }
-
 
     private JPanel createProblemTab() {
         JPanel panel = new JPanel(new BorderLayout(15, 15));
@@ -244,30 +227,20 @@ public class AdminGUI extends JFrame {
         for (String lang : List.of("Python", "JavaScript")) {
             JTextArea area = new JTextArea(8, 40);
             area.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            area.setLineWrap(true);
+            area.setWrapStyleWord(true);
             starterAreas.put(lang.toLowerCase(), area);
             starterTabs.add(lang, new JScrollPane(area));
         }
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        formPanel.add(new JLabel("Title:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(problemTitleField, gbc);
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        formPanel.add(new JLabel("Description:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(new JScrollPane(description), gbc);
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        formPanel.add(new JLabel("Difficulty:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(difficulty, gbc);
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        formPanel.add(new JLabel("Starter Code:"), gbc);
-        gbc.gridx = 1;
-        formPanel.add(starterTabs, gbc);
+        gbc.gridx = 0; gbc.gridy = 0; formPanel.add(new JLabel("Title:"), gbc);
+        gbc.gridx = 1; formPanel.add(problemTitleField, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; formPanel.add(new JLabel("Description:"), gbc);
+        gbc.gridx = 1; formPanel.add(new JScrollPane(description), gbc);
+        gbc.gridx = 0; gbc.gridy = 2; formPanel.add(new JLabel("Difficulty:"), gbc);
+        gbc.gridx = 1; formPanel.add(difficulty, gbc);
+        gbc.gridx = 0; gbc.gridy = 3; formPanel.add(new JLabel("Starter Code:"), gbc);
+        gbc.gridx = 1; formPanel.add(starterTabs, gbc);
 
         // Test case table
         String[] testColumns = {"Input", "Expected Output"};
@@ -279,7 +252,6 @@ public class AdminGUI extends JFrame {
         JButton addTestCaseBtn = new JButton("Add Test Case");
         JButton removeTestCaseBtn = new JButton("Remove Selected");
         JButton addProblemBtn = new JButton("Add Problem");
-
         styleButton(addTestCaseBtn, new Color(60, 179, 113));
         styleButton(removeTestCaseBtn, new Color(220, 20, 60));
         styleButton(addProblemBtn, new Color(100, 149, 237));
@@ -294,10 +266,19 @@ public class AdminGUI extends JFrame {
         panel.add(testCaseScroll, BorderLayout.CENTER);
         panel.add(btnPanel, BorderLayout.SOUTH);
 
+        // Add Test Case
         addTestCaseBtn.addActionListener(e -> {
-            String input = JOptionPane.showInputDialog(this, "Test Case Input:");
-            String output = JOptionPane.showInputDialog(this, "Expected Output:");
-            if (input != null && output != null) testCaseModel.addRow(new Object[]{input, output});
+            String inputJson = JOptionPane.showInputDialog(this, "Test Case Input (JSON):");
+            String expectedJson = JOptionPane.showInputDialog(this, "Expected Output (JSON):");
+            if (inputJson != null && expectedJson != null) {
+                try {
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(inputJson);
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(expectedJson);
+                    testCaseModel.addRow(new Object[]{inputJson, expectedJson});
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid JSON!");
+                }
+            }
         });
 
         removeTestCaseBtn.addActionListener(e -> {

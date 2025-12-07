@@ -3,7 +3,9 @@ package com.rmi.coding.platform.client.compponents;
 import com.rmi.coding.platform.agents.GenericAgent;
 import com.rmi.coding.platform.agents.tasks.ScriptTask;
 import com.rmi.coding.platform.client.AgentCallbackImpl;
+import com.rmi.coding.platform.model.TestCase;
 import com.rmi.coding.platform.service.AgentService;
+import com.rmi.coding.platform.service.TestCaseService;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.*;
 
@@ -12,6 +14,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.List;
+import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +30,12 @@ public class MiniScriptIDEPanel extends JPanel {
     private JButton runButton;
     private JButton clearButton;
     private JTextArea outputArea;
+
+    private int currentProblemId;
+
+    public void setCurrentProblemId(int id) {
+        this.currentProblemId = id;
+    }
 
     public MiniScriptIDEPanel() {
         initComponents();
@@ -126,8 +137,15 @@ public class MiniScriptIDEPanel extends JPanel {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
             AgentService service = (AgentService) registry.lookup("AgentService");
 
+            TestCaseService testCaseService = (TestCaseService) registry.lookup("TestCaseService");
+
+            // Lấy test case từ server
+            System.out.println(currentProblemId);
+            List<TestCase> testCases = testCaseService.getTestCasesByProblemId(currentProblemId);
+            if (testCases == null) testCases = new ArrayList<>();
+
             AgentCallbackImpl callback = new AgentCallbackImpl(outputArea);
-            ScriptTask task = new ScriptTask(code, lang);
+            ScriptTask task = new ScriptTask(code, lang, testCases);
             GenericAgent agent = new GenericAgent(task);
 
             service.submitAgent(agent, callback);
