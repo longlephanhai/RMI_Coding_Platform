@@ -4,7 +4,9 @@ import com.rmi.coding.platform.agents.GenericAgent;
 import com.rmi.coding.platform.agents.tasks.ScriptTask;
 import com.rmi.coding.platform.client.AgentCallbackImpl;
 import com.rmi.coding.platform.model.TestCase;
+import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.AgentService;
+import com.rmi.coding.platform.service.SubmissionService;
 import com.rmi.coding.platform.service.TestCaseService;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.*;
@@ -33,14 +35,18 @@ public class MiniScriptIDEPanel extends JPanel {
 
     private int currentProblemId;
 
+    private final User currentUser;
+
+
     public void setCurrentProblemId(int id) {
         this.currentProblemId = id;
     }
 
-    public MiniScriptIDEPanel() {
+    public MiniScriptIDEPanel(User user) {
         initComponents();
         setupLayout();
         initializeDefaults();
+        this.currentUser = user;
     }
 
     private void initComponents() {
@@ -135,16 +141,22 @@ public class MiniScriptIDEPanel extends JPanel {
 
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
-            AgentService service = (AgentService) registry.lookup("AgentService");
 
+            AgentService service = (AgentService) registry.lookup("AgentService");
             TestCaseService testCaseService = (TestCaseService) registry.lookup("TestCaseService");
 
-            // Lấy test case từ server
-            System.out.println(currentProblemId);
             List<TestCase> testCases = testCaseService.getTestCasesByProblemId(currentProblemId);
             if (testCases == null) testCases = new ArrayList<>();
 
-            AgentCallbackImpl callback = new AgentCallbackImpl(outputArea);
+            AgentCallbackImpl callback = new AgentCallbackImpl(
+                    outputArea,
+                    null,
+                    currentUser.getId(),
+                    currentProblemId,
+                    lang,
+                    code
+            );
+
             ScriptTask task = new ScriptTask(code, lang, testCases);
             GenericAgent agent = new GenericAgent(task);
 
@@ -156,6 +168,7 @@ public class MiniScriptIDEPanel extends JPanel {
             outputArea.setText("[Error] " + ex.getMessage());
         }
     }
+
 
     private void handleClear() {
         codeArea.setText("");
