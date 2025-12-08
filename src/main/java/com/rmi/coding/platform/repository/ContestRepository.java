@@ -3,7 +3,6 @@ package com.rmi.coding.platform.repository;
 import com.rmi.coding.platform.model.Contest;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,6 @@ public class ContestRepository {
         return -1;
     }
 
-    // Hàm thêm problem vào contest
     public void addProblemsToContest(int contestId, List<Integer> problemIds) throws SQLException {
         if (problemIds == null || problemIds.isEmpty()) return;
         String sql = "INSERT INTO contest_problems (contest_id, problem_id) VALUES (?, ?)";

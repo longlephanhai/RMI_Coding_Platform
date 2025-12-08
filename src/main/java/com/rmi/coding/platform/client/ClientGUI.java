@@ -13,6 +13,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.time.LocalDateTime;
 
 public class ClientGUI extends JFrame {
 
@@ -74,16 +75,34 @@ public class ClientGUI extends JFrame {
     private void showMainPanel() {
         getContentPane().removeAll();
 
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panel.setBackground(new Color(245, 245, 245));
+        // Wrapper chính
+        JPanel wrapper = new JPanel(new BorderLayout(10, 10));
+        wrapper.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        wrapper.setBackground(new Color(245, 245, 245));
 
-        // Header welcome
+        // ========== HEADER ==========
         JLabel label = new JLabel("Welcome, " + loggedUser.getUsername() + "! Role: " + loggedUser.getRole());
         label.setFont(new Font("Arial", Font.BOLD, 22));
-        panel.add(label, BorderLayout.NORTH);
+        wrapper.add(label, BorderLayout.NORTH);
 
-        // Table Problem
+        // ========== MENU ==========
+        JPanel menuPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton btnProblems = new JButton("Problems");
+        JButton btnContests = new JButton("Contests");
+        menuPanel.add(btnProblems);
+        menuPanel.add(btnContests);
+        wrapper.add(menuPanel, BorderLayout.SOUTH);
+
+        // ========== CARD LAYOUT ==========
+        JPanel cardPanel = new JPanel(new CardLayout());
+        CardLayout cl = (CardLayout) cardPanel.getLayout();
+
+        // ============================================================
+        //                    PANEL PROBLEMS (Nguyên bản)
+        // ============================================================
+        JPanel problemsPanel = new JPanel(new BorderLayout(10, 10));
+        problemsPanel.setBackground(new Color(245, 245, 245));
+
         String[] columns = {"ID", "Title", "Difficulty", "Action"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
             @Override
@@ -91,10 +110,10 @@ public class ClientGUI extends JFrame {
                 return column == 3;
             }
         };
+
         JTable table = new JTable(model);
         table.setRowHeight(30);
 
-        // Load problems từ server
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
             ProblemService problemService = (ProblemService) registry.lookup("ProblemService");
@@ -114,13 +133,127 @@ public class ClientGUI extends JFrame {
         table.getColumn("Action").setCellRenderer(new ButtonRenderer());
         table.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox(), this, loggedUser, table));
 
-        JScrollPane scroll = new JScrollPane(table);
-        panel.add(scroll, BorderLayout.CENTER);
+        problemsPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        add(panel);
+        // ============================================================
+        //                    PANEL CONTESTS (FULL)
+        // ============================================================
+        JPanel contestPanel = new JPanel(new BorderLayout(10, 10));
+        contestPanel.setBackground(new Color(245, 245, 245));
+
+        JLabel ctTitle = new JLabel("Contest List");
+        ctTitle.setFont(new Font("Arial", Font.BOLD, 20));
+        contestPanel.add(ctTitle, BorderLayout.NORTH);
+
+        String[] contestCol = {"ID", "Title", "Start", "End", "Status", "Action"};
+        DefaultTableModel contestModel = new DefaultTableModel(contestCol, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return col == 5;
+            }
+        };
+
+        JTable contestTable = new JTable(contestModel);
+        contestTable.setRowHeight(30);
+
+        try {
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            ContestService contestService = (ContestService) registry.lookup("ContestService");
+
+            contestService.getContests().forEach(c -> {
+
+                LocalDateTime now = LocalDateTime.now();
+                String status;
+
+                if (now.isBefore(c.getStartTime())) {
+                    status = "Not started";
+                } else if (now.isAfter(c.getEndTime())) {
+                    status = "Ended";
+                } else {
+                    status = "Running";
+                }
+
+                contestModel.addRow(new Object[]{
+                        c.getId(),
+                        c.getTitle(),
+                        c.getStartTime().toString(),
+                        c.getEndTime().toString(),
+                        status,
+                        "View"
+                });
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Cannot load contests", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // renderer + editor
+        contestTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
+        contestTable.getColumn("Action").setCellEditor(new DefaultCellEditor(new JCheckBox()) {
+            JButton btn = new JButton("View");
+            boolean clicked = false;
+            int row;
+
+            {
+                btn.addActionListener(e -> fireEditingStopped());
+            }
+
+            @Override
+            public Component getTableCellEditorComponent(JTable tbl, Object val, boolean sel, int r, int col) {
+                row = r;
+                clicked = true;
+                return btn;
+            }
+
+            @Override
+            public Object getCellEditorValue() {
+                if (clicked) {
+
+                    int id = (int) contestTable.getValueAt(row, 0);
+                    String title = (String) contestTable.getValueAt(row, 1);
+                    String status = (String) contestTable.getValueAt(row, 4);
+
+                    switch (status) {
+                        case "Not started":
+                            JOptionPane.showMessageDialog(btn,
+                                    "Contest has not started yet!");
+                            break;
+
+                        case "Ended":
+                            JOptionPane.showMessageDialog(btn,
+                                    "Contest is already finished.");
+                            break;
+
+                        case "Running":
+                            JOptionPane.showMessageDialog(btn,
+                                    "Opening Contest: " + title + " (ID: " + id + ")");
+                            // TODO: mở UI thi contest
+                            break;
+                    }
+                }
+                clicked = false;
+                return "View";
+            }
+        });
+
+        contestPanel.add(new JScrollPane(contestTable), BorderLayout.CENTER);
+
+        // Add vào card
+        cardPanel.add(problemsPanel, "problems");
+        cardPanel.add(contestPanel, "contests");
+
+        wrapper.add(cardPanel, BorderLayout.CENTER);
+
+        // Switch tab
+        btnProblems.addActionListener(e -> cl.show(cardPanel, "problems"));
+        btnContests.addActionListener(e -> cl.show(cardPanel, "contests"));
+
+        add(wrapper);
         revalidate();
         repaint();
     }
+
 
     class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
