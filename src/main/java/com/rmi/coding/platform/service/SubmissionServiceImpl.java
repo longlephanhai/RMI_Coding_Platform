@@ -28,7 +28,6 @@ public class SubmissionServiceImpl extends UnicastRemoteObject implements Submis
     public Submission submit(int userId, int problemId, String language, String code) throws RemoteException {
         try {
             Submission submission = new Submission(userId, problemId, language, code);
-            // leave passed/passedTests/... default until judged
             return submissionRepository.save(submission);
         } catch (Exception e) {
             throw new RemoteException("Error submitting practice solution", e);
@@ -47,15 +46,14 @@ public class SubmissionServiceImpl extends UnicastRemoteObject implements Submis
     }
 
     @Override
-    public Submission submitWithResult(Integer contestId, int userId, int problemId, String language, String code, ScriptResult result) throws RemoteException {
+    public void submitWithResult(Integer contestId, int userId, int problemId, String language, String code, ScriptResult result) throws RemoteException {
         try {
             Submission s = new Submission(contestId, userId, problemId, language, code);
             s.setPassed(result.isPassedAll());
             s.setPassedTests(result.getPassedCount());
             s.setTotalTests(result.getTotalCount());
             s.setExecutionTime(result.getExecutionTime());
-            // submittedAt already set in constructor
-            return submissionRepository.save(s);
+            submissionRepository.save(s);
         } catch (Exception e) {
             throw new RemoteException("Failed to save submission with result", e);
         }
@@ -76,6 +74,15 @@ public class SubmissionServiceImpl extends UnicastRemoteObject implements Submis
             return submissionRepository.findByProblemId(problemId);
         } catch (Exception e) {
             throw new RemoteException("Error getting submissions by problem", e);
+        }
+    }
+
+    @Override
+    public List<Submission> getSubmissionsByUserAndProblem(int userId, int problemId) throws RemoteException {
+        try {
+            return submissionRepository.findByUserIdAndProblemId(userId, problemId);
+        } catch (Exception e) {
+            throw new RemoteException("Error getting submissions by user and problem", e);
         }
     }
 

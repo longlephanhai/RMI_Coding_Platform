@@ -16,7 +16,7 @@ public class Submission implements Serializable {
     private boolean passed;
     private int passedTests;
     private int totalTests;
-    private long executionTime;    // ms
+    private long executionTime;
     private LocalDateTime submittedAt;
 
     public Submission() {

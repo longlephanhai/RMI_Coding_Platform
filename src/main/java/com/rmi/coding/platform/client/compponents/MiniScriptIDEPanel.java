@@ -27,6 +27,7 @@ public class MiniScriptIDEPanel extends JPanel {
 
     private JButton runButton;
     private JButton clearButton;
+    private JButton historyButton;
     private JButton themeButton;
     private JTextArea outputArea;
 
@@ -37,11 +38,10 @@ public class MiniScriptIDEPanel extends JPanel {
 
     public MiniScriptIDEPanel(User user) {
         this.currentUser = user;
-
         initComponents();
         setupLayout();
         initializeDefaults();
-        applyLightTheme(); // default
+        applyLightTheme();
     }
 
 
@@ -49,19 +49,16 @@ public class MiniScriptIDEPanel extends JPanel {
         codeMap = new HashMap<>();
         currentLang = "python";
 
-        // Combo chọn ngôn ngữ
         langCombo = new JComboBox<>(new String[]{"Python", "JavaScript"});
         langCombo.setSelectedItem("Python");
         langCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         langCombo.addActionListener(this::handleLanguageChange);
 
-        // Nút theme
         themeButton = new JButton("Dark");
         themeButton.setFocusPainted(false);
         themeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         themeButton.addActionListener(e -> toggleTheme());
 
-        // Code editor
         codeArea = new RSyntaxTextArea();
         codeArea.setCodeFoldingEnabled(true);
         codeArea.setAntiAliasingEnabled(true);
@@ -72,9 +69,22 @@ public class MiniScriptIDEPanel extends JPanel {
 
         runButton = styledButton("Run", new Color(46, 204, 113));
         clearButton = styledButton("Reset", new Color(231, 76, 60));
+        historyButton = styledButton("History Submit", new Color(231, 76, 60));
 
         runButton.addActionListener(e -> handleRun());
         clearButton.addActionListener(e -> handleClear());
+        historyButton.addActionListener(e -> {
+            HistorySubmitPanel historySubmitPanel = new HistorySubmitPanel(currentUser, currentProblemId);
+
+            Container parent = MiniScriptIDEPanel.this.getParent();
+            if (parent != null) {
+                parent.removeAll();
+                parent.add(historySubmitPanel);
+                parent.revalidate();
+                parent.repaint();
+            }
+        });
+
 
         outputArea = new JTextArea(10, 80);
         outputArea.setFont(new Font("Consolas", Font.PLAIN, 14));
@@ -101,6 +111,7 @@ public class MiniScriptIDEPanel extends JPanel {
         topBar.add(langCombo);
         topBar.add(runButton);
         topBar.add(clearButton);
+        topBar.add(historyButton);
         topBar.add(themeButton);
 
         add(topBar, BorderLayout.NORTH);

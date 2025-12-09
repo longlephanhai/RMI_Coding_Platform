@@ -14,16 +14,18 @@ public interface SubmissionService extends Remote {
     Submission submitInContest(int contestId, int userId, int problemId, String language, String code) throws RemoteException;
 
 
-    Submission submitWithResult(Integer contestId,
-                                int userId,
-                                int problemId,
-                                String language,
-                                String code,
-                                ScriptResult result) throws RemoteException;
+    void submitWithResult(Integer contestId,
+                          int userId,
+                          int problemId,
+                          String language,
+                          String code,
+                          ScriptResult result) throws RemoteException;
 
     List<Submission> getSubmissionsByUser(int userId) throws RemoteException;
 
     List<Submission> getSubmissionsByProblem(int problemId) throws RemoteException;
+
+    List<Submission> getSubmissionsByUserAndProblem(int userId, int ProblemId) throws RemoteException;
 
     List<Submission> getSubmissionsByContest(int contestId) throws RemoteException;
 

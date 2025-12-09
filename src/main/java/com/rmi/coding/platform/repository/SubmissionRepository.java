@@ -14,13 +14,12 @@ public class SubmissionRepository {
         this.connection = connection;
     }
 
-    // Insert submission
     public Submission save(Submission submission) throws SQLException {
         String sql = """
-            INSERT INTO submissions 
-            (contest_id, user_id, problem_id, language, code, passed, passed_tests, total_tests, execution_time, submitted_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+                     INSERT INTO submissions\s
+                     (contest_id, user_id, problem_id, language, code, passed, passed_tests, total_tests, execution_time, submitted_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                \s""";
 
         PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -50,7 +49,6 @@ public class SubmissionRepository {
         return submission;
     }
 
-    // Find by ID
     public Submission findById(int id) throws SQLException {
         String sql = "SELECT * FROM submissions WHERE id = ?";
         PreparedStatement stmt = connection.prepareStatement(sql);
@@ -60,7 +58,6 @@ public class SubmissionRepository {
         return rs.next() ? mapSubmission(rs) : null;
     }
 
-    // Find all submissions
     public List<Submission> findAll() throws SQLException {
         List<Submission> list = new ArrayList<>();
         String sql = "SELECT * FROM submissions ORDER BY submitted_at DESC";
@@ -75,7 +72,6 @@ public class SubmissionRepository {
         return list;
     }
 
-    // Find by user
     public List<Submission> findByUserId(int userId) throws SQLException {
         List<Submission> list = new ArrayList<>();
         String sql = "SELECT * FROM submissions WHERE user_id = ? ORDER BY submitted_at DESC";
@@ -90,7 +86,6 @@ public class SubmissionRepository {
         return list;
     }
 
-    // Find by problem
     public List<Submission> findByProblemId(int problemId) throws SQLException {
         List<Submission> list = new ArrayList<>();
         String sql = "SELECT * FROM submissions WHERE problem_id = ? ORDER BY submitted_at DESC";
@@ -105,7 +100,20 @@ public class SubmissionRepository {
         return list;
     }
 
-    // Find by contest
+    public List<Submission> findByUserIdAndProblemId(int userId, int problemId) throws SQLException {
+        List<Submission> list = new ArrayList<>();
+        String sql = "SELECT * FROM submissions WHERE user_id = ? AND problem_id = ? ORDER BY submitted_at DESC";
+
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setInt(1,userId);
+        stmt.setInt(2,problemId);
+        ResultSet rs= stmt.executeQuery();
+        while (rs.next()){
+            list.add(mapSubmission(rs));
+        }
+        return list;
+    }
+
     public List<Submission> findByContestId(Integer contestId) throws SQLException {
         List<Submission> list = new ArrayList<>();
         String sql = "SELECT * FROM submissions WHERE contest_id = ? ORDER BY submitted_at ASC";
@@ -120,14 +128,13 @@ public class SubmissionRepository {
         return list;
     }
 
-    // Latest submission in contest
     public Submission findLatestInContest(int userId, int contestId) throws SQLException {
         String sql = """
-            SELECT * FROM submissions
-            WHERE user_id = ? AND contest_id = ?
-            ORDER BY submitted_at DESC
-            LIMIT 1
-        """;
+                    SELECT * FROM submissions
+                    WHERE user_id = ? AND contest_id = ?
+                    ORDER BY submitted_at DESC
+                    LIMIT 1
+                """;
 
         PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setInt(1, userId);
@@ -137,7 +144,6 @@ public class SubmissionRepository {
         return rs.next() ? mapSubmission(rs) : null;
     }
 
-    // Map SQL result to Submission object
     private Submission mapSubmission(ResultSet rs) throws SQLException {
         Submission s = new Submission();
         s.setId(rs.getInt("id"));
