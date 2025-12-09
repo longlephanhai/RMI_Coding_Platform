@@ -1,5 +1,6 @@
 package com.rmi.coding.platform.client;
 
+import com.rmi.coding.platform.client.compponents.ContestDetailPanel;
 import com.rmi.coding.platform.client.compponents.MiniScriptIDEPanel;
 import com.rmi.coding.platform.model.Problem;
 import com.rmi.coding.platform.model.User;
@@ -17,13 +18,11 @@ import java.time.LocalDateTime;
 
 public class ClientGUI extends JFrame {
 
-    private final UserService userService;
     private User loggedUser;
-    private JPanel mainPanel;
-    private CardLayout cardLayout;
+    private final JPanel mainPanel;
+    private final CardLayout cardLayout;
 
     public ClientGUI(UserService userService) {
-        this.userService = userService;
 
         setTitle("Coding Platform");
         setSize(1000, 700);
@@ -35,8 +34,8 @@ public class ClientGUI extends JFrame {
         mainPanel = new JPanel(cardLayout);
 
         // Panels login/register
-        LoginGUI loginGUI = new LoginGUI(this.userService, this);
-        RegisterGUI registerGUI = new RegisterGUI(this.userService, this);
+        LoginGUI loginGUI = new LoginGUI(userService, this);
+        RegisterGUI registerGUI = new RegisterGUI(userService, this);
 
         mainPanel.add(loginGUI, "login");
         mainPanel.add(registerGUI, "register");
@@ -135,9 +134,6 @@ public class ClientGUI extends JFrame {
 
         problemsPanel.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // ============================================================
-        //                    PANEL CONTESTS (FULL)
-        // ============================================================
         JPanel contestPanel = new JPanel(new BorderLayout(10, 10));
         contestPanel.setBackground(new Color(245, 245, 245));
 
@@ -191,7 +187,7 @@ public class ClientGUI extends JFrame {
         // renderer + editor
         contestTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         contestTable.getColumn("Action").setCellEditor(new DefaultCellEditor(new JCheckBox()) {
-            JButton btn = new JButton("View");
+            final JButton btn = new JButton("View");
             boolean clicked = false;
             int row;
 
@@ -226,15 +222,24 @@ public class ClientGUI extends JFrame {
                             break;
 
                         case "Running":
-                            JOptionPane.showMessageDialog(btn,
-                                    "Opening Contest: " + title + " (ID: " + id + ")");
-                            // TODO: mở UI thi contest
+
+                            SwingUtilities.invokeLater(() -> {
+                                JFrame frame = new JFrame("Contest: " + title);
+                                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                                frame.setSize(900, 600);
+                                frame.setLocationRelativeTo(null);
+
+                                frame.add(new ContestDetailPanel(id, loggedUser));
+
+                                frame.setVisible(true);
+                            });
                             break;
                     }
                 }
                 clicked = false;
                 return "View";
             }
+
         });
 
         contestPanel.add(new JScrollPane(contestTable), BorderLayout.CENTER);
@@ -255,7 +260,7 @@ public class ClientGUI extends JFrame {
     }
 
 
-    class ButtonRenderer extends JButton implements TableCellRenderer {
+    static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
         }
@@ -270,17 +275,13 @@ public class ClientGUI extends JFrame {
     }
 
     class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
+        private final JButton button;
         private String label;
         private boolean clicked;
-        private ClientGUI gui;
-        private User user;
-        private JTable table;
+        private final JTable table;
 
         public ButtonEditor(JCheckBox checkBox, ClientGUI gui, User user, JTable table) {
             super(checkBox);
-            this.gui = gui;
-            this.user = user;
             this.table = table;
 
             button = new JButton();

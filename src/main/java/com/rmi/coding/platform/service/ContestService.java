@@ -8,10 +8,7 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ContestService extends Remote {
-    boolean createContest(Contest contest) throws RemoteException;
+    void createContest(Contest contest) throws RemoteException;
     List<Contest> getContests() throws RemoteException;
-    boolean deleteContest(int contestId) throws RemoteException;
-
-    boolean addProblem(Problem problem) throws RemoteException;
-    List<Problem> getProblems() throws RemoteException;
+    List<Problem> getProblems(int contestId) throws Exception;
 }

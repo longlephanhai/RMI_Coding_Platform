@@ -1,13 +1,17 @@
 package com.rmi.coding.platform.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rmi.coding.platform.model.Contest;
+import com.rmi.coding.platform.model.Problem;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ContestRepository {
     private final Connection connection;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public ContestRepository(Connection connection) {
         this.connection = connection;
@@ -62,7 +66,6 @@ public class ContestRepository {
         return contests;
     }
 
-
     public boolean deleteContest(int contestId) throws SQLException {
         String sql = "DELETE FROM contests WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -71,4 +74,27 @@ public class ContestRepository {
         }
     }
 
+    public List<Problem> listProblemsByContestId(int contestId) throws Exception {
+        List<Problem> problems = new ArrayList<>();
+        String sql = "SELECT p.* FROM problems p JOIN contest_problems cp ON cp.problem_id = p.id WHERE cp.contest_id = ?";
+        try {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, contestId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Problem problem = new Problem();
+                problem.setId(rs.getInt("id"));
+                problem.setTitle(rs.getString("title"));
+                problem.setDescription(rs.getString("description"));
+                problem.setDifficulty(rs.getString("difficulty"));
+                String starterJson = rs.getString("starter_code");
+                Map<String, String> starterMap = mapper.readValue(starterJson, Map.class);
+                problem.setStarterCode(starterMap);
+                problems.add(problem);
+            }
+            return problems;
+        } catch (Exception e) {
+            throw new Exception("Cannot execute sql", e);
+        }
+    }
 }

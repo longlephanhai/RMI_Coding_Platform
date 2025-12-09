@@ -5,7 +5,6 @@ import com.rmi.coding.platform.model.Contest;
 import com.rmi.coding.platform.model.Problem;
 import com.rmi.coding.platform.repository.ContestRepository;
 import com.rmi.coding.platform.repository.ProblemRepository;
-import com.rmi.coding.platform.repository.TestCaseRepository;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -29,13 +28,11 @@ public class ContestServiceImpl extends UnicastRemoteObject implements ContestSe
     }
 
     @Override
-    public boolean createContest(Contest contest) throws RemoteException {
+    public void createContest(Contest contest) throws RemoteException {
         try {
             int id = contestRepository.createContest(contest);
-            return id > 0;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
     }
 
@@ -50,33 +47,14 @@ public class ContestServiceImpl extends UnicastRemoteObject implements ContestSe
     }
 
     @Override
-    public boolean deleteContest(int contestId) throws RemoteException {
+    public List<Problem> getProblems(int contestId) throws RemoteException {
         try {
-            return contestRepository.deleteContest(contestId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    public boolean addProblem(Problem problem) throws RemoteException {
-        try {
-            problemRepository.createProblem(problem);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    public List<Problem> getProblems() throws RemoteException {
-        try {
-            return problemRepository.listAllProblems();
+            return contestRepository.listProblemsByContestId(contestId);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
+
 }
