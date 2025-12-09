@@ -15,9 +15,8 @@ import java.util.List;
 
 public class ContestListPanel extends JPanel {
 
-    private JTable table;
-    private DefaultTableModel model;
-    private ContestService contestService;
+    private final JTable table;
+    private final DefaultTableModel model;
 
     public ContestListPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -27,21 +26,19 @@ public class ContestListPanel extends JPanel {
         title.setFont(new Font("Arial", Font.BOLD, 24));
         add(title, BorderLayout.NORTH);
 
-        // =========================
-        // Thêm cột Status
-        // =========================
+
         String[] columns = {"ID", "Title", "Start", "End", "Status", "Action"};
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                return col == 5; // chỉ nút Action
+                return col == 5;
             }
         };
 
         table = new JTable(model);
         table.setRowHeight(32);
 
-        // Renderer
+
         table.getColumn("Action").setCellRenderer(new ButtonRenderer());
         table.getColumn("Action").setCellEditor(new ButtonEditor(new JCheckBox()));
 
@@ -54,7 +51,7 @@ public class ContestListPanel extends JPanel {
     private void loadContests() {
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
-            contestService = (ContestService) registry.lookup("ContestService");
+            ContestService contestService = (ContestService) registry.lookup("ContestService");
 
             List<Contest> contests = contestService.getContests();
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -94,7 +91,7 @@ public class ContestListPanel extends JPanel {
     }
 
     // ----------- Button Renderer -------------
-    class ButtonRenderer extends JButton implements TableCellRenderer {
+    static class ButtonRenderer extends JButton implements TableCellRenderer {
 
         public ButtonRenderer() {
             setOpaque(true);
@@ -126,7 +123,7 @@ public class ContestListPanel extends JPanel {
 
     // ----------- Button Editor -------------
     class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
+        private final JButton button;
         private boolean clicked;
         private int row;
 

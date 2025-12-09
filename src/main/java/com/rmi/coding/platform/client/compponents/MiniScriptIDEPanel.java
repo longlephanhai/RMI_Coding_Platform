@@ -6,7 +6,6 @@ import com.rmi.coding.platform.client.AgentCallbackImpl;
 import com.rmi.coding.platform.model.TestCase;
 import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.AgentService;
-import com.rmi.coding.platform.service.SubmissionService;
 import com.rmi.coding.platform.service.TestCaseService;
 import org.fife.ui.rsyntaxtextarea.*;
 import org.fife.ui.rtextarea.*;
@@ -16,11 +15,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.*;
 import java.util.List;
-import java.util.ArrayList;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MiniScriptIDEPanel extends JPanel {
 
@@ -31,78 +27,123 @@ public class MiniScriptIDEPanel extends JPanel {
 
     private JButton runButton;
     private JButton clearButton;
+    private JButton themeButton;
     private JTextArea outputArea;
 
-    private int currentProblemId;
+    private boolean darkMode = false;
 
+    private int currentProblemId;
     private final User currentUser;
 
-
-    public void setCurrentProblemId(int id) {
-        this.currentProblemId = id;
-    }
-
     public MiniScriptIDEPanel(User user) {
+        this.currentUser = user;
+
         initComponents();
         setupLayout();
         initializeDefaults();
-        this.currentUser = user;
+        applyLightTheme(); // default
     }
+
 
     private void initComponents() {
         codeMap = new HashMap<>();
         currentLang = "python";
 
+        // Combo chọn ngôn ngữ
         langCombo = new JComboBox<>(new String[]{"Python", "JavaScript"});
         langCombo.setSelectedItem("Python");
-        langCombo.setFont(new Font("Arial", Font.PLAIN, 14));
+        langCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         langCombo.addActionListener(this::handleLanguageChange);
 
+        // Nút theme
+        themeButton = new JButton("Dark");
+        themeButton.setFocusPainted(false);
+        themeButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        themeButton.addActionListener(e -> toggleTheme());
+
+        // Code editor
         codeArea = new RSyntaxTextArea();
         codeArea.setCodeFoldingEnabled(true);
         codeArea.setAntiAliasingEnabled(true);
-        codeArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        codeArea.setFont(new Font("Consolas", Font.PLAIN, 15));
         codeArea.setTabSize(4);
-        codeArea.setLineWrap(true);
-        codeArea.setWrapStyleWord(true);
         codeArea.setAutoIndentEnabled(true);
-        codeArea.setCurrentLineHighlightColor(new Color(255, 255, 225));
+        codeArea.setHighlightCurrentLine(true);
 
-        runButton = new JButton("Run");
-        clearButton = new JButton("Clear");
-        outputArea = new JTextArea(10, 80);
-        outputArea.setFont(new Font("Consolas", Font.PLAIN, 14));
-        outputArea.setEditable(false);
-        outputArea.setBackground(new Color(245, 245, 245));
+        runButton = styledButton("Run", new Color(46, 204, 113));
+        clearButton = styledButton("Reset", new Color(231, 76, 60));
 
         runButton.addActionListener(e -> handleRun());
         clearButton.addActionListener(e -> handleClear());
+
+        outputArea = new JTextArea(10, 80);
+        outputArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        outputArea.setEditable(false);
+        outputArea.setMargin(new Insets(10, 10, 10, 10));
+    }
+
+    private JButton styledButton(String text, Color color) {
+        JButton btn = new JButton(text);
+        btn.setFocusPainted(false);
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setPreferredSize(new Dimension(100, 32));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        return btn;
     }
 
     private void setupLayout() {
-        setLayout(new BorderLayout(0, 5));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(8, 8));
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.add(new JLabel("Language: "));
-        topPanel.add(langCombo);
-        add(topPanel, BorderLayout.NORTH);
+        JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        topBar.add(new JLabel("Language: "));
+        topBar.add(langCombo);
+        topBar.add(runButton);
+        topBar.add(clearButton);
+        topBar.add(themeButton);
 
-        RTextScrollPane codeScroll = new RTextScrollPane(codeArea);
-        codeScroll.setLineNumbersEnabled(true);
-        add(codeScroll, BorderLayout.CENTER);
+        add(topBar, BorderLayout.NORTH);
 
-        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.add(runButton);
-        buttonPanel.add(clearButton);
-        bottomPanel.add(buttonPanel, BorderLayout.NORTH);
+        RTextScrollPane scrollPane = new RTextScrollPane(codeArea);
+        scrollPane.setLineNumbersEnabled(true);
+        scrollPane.setFoldIndicatorEnabled(true);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Editor"));
+
+        add(scrollPane, BorderLayout.CENTER);
 
         JScrollPane outputScroll = new JScrollPane(outputArea);
-        outputScroll.setBorder(BorderFactory.createTitledBorder("Output / Test Case"));
-        bottomPanel.add(outputScroll, BorderLayout.CENTER);
+        outputScroll.setBorder(BorderFactory.createTitledBorder("Output"));
 
-        add(bottomPanel, BorderLayout.SOUTH);
+        add(outputScroll, BorderLayout.SOUTH);
+    }
+
+    private void toggleTheme() {
+        if (!darkMode) applyDarkTheme();
+        else applyLightTheme();
+        darkMode = !darkMode;
+    }
+
+    private void applyDarkTheme() {
+        codeArea.setBackground(new Color(32, 32, 32));
+        codeArea.setForeground(Color.WHITE);
+        outputArea.setBackground(new Color(40, 40, 40));
+        outputArea.setForeground(Color.WHITE);
+
+        setBackground(new Color(25, 25, 25));
+
+        themeButton.setText("Light");
+    }
+
+    private void applyLightTheme() {
+        codeArea.setBackground(Color.WHITE);
+        codeArea.setForeground(Color.BLACK);
+        outputArea.setBackground(new Color(245, 245, 245));
+        outputArea.setForeground(Color.BLACK);
+
+        setBackground(new Color(250, 250, 250));
+
+        themeButton.setText("Dark");
     }
 
     private void initializeDefaults() {
@@ -112,32 +153,25 @@ public class MiniScriptIDEPanel extends JPanel {
 
     private void handleLanguageChange(ActionEvent e) {
         String selected = ((String) langCombo.getSelectedItem()).toLowerCase();
+
         if (selected.equals(currentLang)) return;
+
         codeMap.put(currentLang, codeArea.getText());
         currentLang = selected;
         codeArea.setText(codeMap.getOrDefault(currentLang, ""));
         setSyntax(currentLang);
     }
 
-    private void setSyntax(String language) {
-        switch (language.toLowerCase()) {
-            case "python":
-                codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
-                break;
-            case "javascript":
-                codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
-                break;
-            default:
-                codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
-        }
+    private void setSyntax(String lang) {
+        if (lang.equals("python"))
+            codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+        else if (lang.equals("javascript"))
+            codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
     }
 
     private void handleRun() {
         codeMap.put(currentLang, codeArea.getText());
         outputArea.setText("");
-
-        String code = codeArea.getText();
-        String lang = currentLang;
 
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
@@ -148,27 +182,26 @@ public class MiniScriptIDEPanel extends JPanel {
             List<TestCase> testCases = testCaseService.getTestCasesByProblemId(currentProblemId);
             if (testCases == null) testCases = new ArrayList<>();
 
+            ScriptTask task = new ScriptTask(codeArea.getText(), currentLang, testCases);
+
             AgentCallbackImpl callback = new AgentCallbackImpl(
-                    outputArea,
-                    null,
+                    outputArea, null,
                     currentUser.getId(),
                     currentProblemId,
-                    lang,
-                    code
+                    currentLang,
+                    codeArea.getText()
             );
 
-            ScriptTask task = new ScriptTask(code, lang, testCases);
             GenericAgent agent = new GenericAgent(task);
-
             service.submitAgent(agent, callback);
-            outputArea.setText("[Info] Agent submitted to server. Waiting for result...");
+
+            outputArea.setText("[Info] Code submitted. Running tests...");
 
         } catch (Exception ex) {
             ex.printStackTrace();
             outputArea.setText("[Error] " + ex.getMessage());
         }
     }
-
 
     private void handleClear() {
         codeArea.setText("");
@@ -180,17 +213,13 @@ public class MiniScriptIDEPanel extends JPanel {
         if (starterCode == null || starterCode.isEmpty()) return;
 
         codeMap.clear();
-        starterCode.forEach((lang, code) -> codeMap.put(lang.toLowerCase(), code));
+        starterCode.forEach((k, v) -> codeMap.put(k.toLowerCase(), v));
 
-        if (codeMap.containsKey(currentLang)) {
+        if (codeMap.containsKey(currentLang))
             codeArea.setText(codeMap.get(currentLang));
-        } else {
-            String firstLang = codeMap.keySet().iterator().next();
-            currentLang = firstLang;
-            String displayLang = firstLang.substring(0, 1).toUpperCase() + firstLang.substring(1);
-            langCombo.setSelectedItem(displayLang);
-            codeArea.setText(codeMap.get(firstLang));
-            setSyntax(firstLang);
-        }
+    }
+
+    public void setCurrentProblemId(int id) {
+        this.currentProblemId = id;
     }
 }
