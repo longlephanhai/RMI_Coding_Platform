@@ -14,7 +14,7 @@ public class AgentCallbackImpl extends UnicastRemoteObject implements AgentCallb
 
     private final JTextArea outputArea;
 
-    private final Integer contestId;   // null = practice
+    private final Integer contestId;
     private final int userId;
     private final int problemId;
     private final String language;
@@ -51,7 +51,6 @@ public class AgentCallbackImpl extends UnicastRemoteObject implements AgentCallb
     @Override
     public void onResult(ScriptResult result) throws RemoteException {
 
-        // ---- UI ----
         SwingUtilities.invokeLater(() -> {
             String out = "[Result] Passed: "
                     + result.getPassedCount() + "/" + result.getTotalCount()
@@ -61,7 +60,6 @@ public class AgentCallbackImpl extends UnicastRemoteObject implements AgentCallb
             outputArea.setText(out);
         });
 
-        // ---- Save submission ----
         try {
             SubmissionService svc = getSubmissionService();
 

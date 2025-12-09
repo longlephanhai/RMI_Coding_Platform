@@ -142,7 +142,7 @@ public class ContestDetailPanel extends JPanel {
                             .findFirst()
                             .orElse(null);
 
-                    MiniScriptIDEPanel panel = new MiniScriptIDEPanel(user);
+                    MiniScriptIDEContestPanel panel = new MiniScriptIDEContestPanel(user,contestId);
                     assert problem != null;
                     panel.setStarterCode(problem.getStarterCode());
                     panel.setCurrentProblemId(problem.getId());
