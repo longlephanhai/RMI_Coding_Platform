@@ -7,7 +7,6 @@ import com.rmi.coding.platform.service.SubmissionService;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.rmi.registry.LocateRegistry;

@@ -17,6 +17,7 @@ public class ServerMain {
             AgentService agentService = new AgentServiceImpl();
             TestCaseService testCaseService = new TestCaseServiceImpl();
             SubmissionService submissionService = new SubmissionServiceImpl();
+            ContestParticipantService contestParticipantService = new ContestParticipantServiceImpl();
 
             registry.rebind("UserService", userService);
             registry.rebind("ContestService", contestService);
@@ -24,6 +25,7 @@ public class ServerMain {
             registry.rebind("AgentService", agentService);
             registry.rebind("TestCaseService", testCaseService);
             registry.rebind("SubmissionService", submissionService);
+            registry.rebind("ContestParticipantService", contestParticipantService);
 
             System.out.println("RMI Server is running on port 1099...");
         } catch (Exception e) {

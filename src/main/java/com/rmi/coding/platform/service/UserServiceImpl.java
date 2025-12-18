@@ -55,6 +55,16 @@ public class UserServiceImpl extends UnicastRemoteObject implements UserService 
         }
     }
 
+    @Override
+    public User getUserById(int userId) throws RemoteException {
+        try {
+            return userRepository.getUserById(userId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

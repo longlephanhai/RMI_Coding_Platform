@@ -12,7 +12,6 @@ public class UserRepository {
         this.connection = connection;
     }
 
-    // Register
     public boolean register(User user) throws SQLException {
         String sql = "INSERT INTO users (username, password_hash, email, role, created_at) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -26,7 +25,6 @@ public class UserRepository {
         }
     }
 
-    // Login
     public User login(String username, String passwordHash) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ? AND password_hash = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -47,7 +45,6 @@ public class UserRepository {
         return null;
     }
 
-    // Check username exists
     public boolean usernameExists(String username) throws SQLException {
         String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -62,4 +59,24 @@ public class UserRepository {
         return false;
     }
 
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM users where id= ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+                user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                return user;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
 }

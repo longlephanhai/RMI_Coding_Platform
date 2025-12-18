@@ -175,7 +175,7 @@ public class ClientGUI extends JFrame {
                         c.getStartTime().toString(),
                         c.getEndTime().toString(),
                         status,
-                        "View"
+                        "Join"
                 });
             });
 
@@ -187,7 +187,7 @@ public class ClientGUI extends JFrame {
         // renderer + editor
         contestTable.getColumn("Action").setCellRenderer(new ButtonRenderer());
         contestTable.getColumn("Action").setCellEditor(new DefaultCellEditor(new JCheckBox()) {
-            final JButton btn = new JButton("View");
+            final JButton btn = new JButton("Join");
             boolean clicked = false;
             int row;
 
@@ -222,7 +222,6 @@ public class ClientGUI extends JFrame {
                             break;
 
                         case "Running":
-
                             SwingUtilities.invokeLater(() -> {
                                 JFrame frame = new JFrame("Contest: " + title);
                                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -237,7 +236,7 @@ public class ClientGUI extends JFrame {
                     }
                 }
                 clicked = false;
-                return "View";
+                return "Join";
             }
 
         });
