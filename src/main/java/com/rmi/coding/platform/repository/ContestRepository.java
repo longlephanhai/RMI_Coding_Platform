@@ -97,4 +97,21 @@ public class ContestRepository {
             throw new Exception("Cannot execute sql", e);
         }
     }
+
+    //
+    public boolean checkStatusContest(int contestId) throws Exception {
+        String sql = """
+                    SELECT 1
+                    FROM contests
+                    WHERE id = ?
+                      AND start_time <= NOW()
+                      AND end_time >= NOW()
+                """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, contestId);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        }
+    }
 }

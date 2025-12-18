@@ -56,5 +56,15 @@ public class ContestServiceImpl extends UnicastRemoteObject implements ContestSe
         }
     }
 
+    @Override
+    public Boolean checkStatusContest(int contestId) throws Exception {
+        try {
+            return contestRepository.checkStatusContest(contestId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 }

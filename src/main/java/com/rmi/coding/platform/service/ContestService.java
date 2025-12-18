@@ -11,4 +11,5 @@ public interface ContestService extends Remote {
     void createContest(Contest contest) throws RemoteException;
     List<Contest> getContests() throws RemoteException;
     List<Problem> getProblems(int contestId) throws Exception;
+    Boolean checkStatusContest(int contestId) throws Exception;
 }
