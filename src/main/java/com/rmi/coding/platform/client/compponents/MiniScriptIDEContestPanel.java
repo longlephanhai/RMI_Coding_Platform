@@ -2,7 +2,7 @@ package com.rmi.coding.platform.client.compponents;
 
 import com.rmi.coding.platform.agents.GenericAgent;
 import com.rmi.coding.platform.agents.tasks.ScriptTask;
-import com.rmi.coding.platform.client.AgentCallbackImpl;
+import com.rmi.coding.platform.client.callbackImpl.AgentCallbackImpl;
 import com.rmi.coding.platform.model.TestCase;
 import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.AgentService;
@@ -50,7 +50,6 @@ public class MiniScriptIDEContestPanel extends JPanel {
         applyLightTheme();
     }
 
-    /* ================= INIT ================= */
 
     private void initComponents() {
         codeMap = new HashMap<>();
@@ -110,10 +109,9 @@ public class MiniScriptIDEContestPanel extends JPanel {
         codeMap.put(currentLang, "");
     }
 
-    /* ================= LOGIC ================= */
 
     private void handleSubmit() {
-        runButton.setEnabled(false); // anti spam
+        runButton.setEnabled(false);
         new Timer(3000, e -> runButton.setEnabled(true)).start();
 
         codeMap.put(currentLang, codeArea.getText());
@@ -128,7 +126,6 @@ public class MiniScriptIDEContestPanel extends JPanel {
             ContestParticipantService participantService =
                     (ContestParticipantService) registry.lookup("ContestParticipantService");
 
-//             1️⃣ Check contest running
             if (!contestService.checkStatusContest(contestId)) {
                 JOptionPane.showMessageDialog(this,
                         "Contest has ended or not started",
@@ -137,7 +134,6 @@ public class MiniScriptIDEContestPanel extends JPanel {
                 return;
             }
 
-            // 2️⃣ Check joined
             if (!participantService.isUserJoined(contestId, currentUser.getId())) {
                 JOptionPane.showMessageDialog(this,
                         "You must join contest before submitting",
@@ -146,7 +142,6 @@ public class MiniScriptIDEContestPanel extends JPanel {
                 return;
             }
 
-            // 3️⃣ Load testcases
             TestCaseService testCaseService =
                     (TestCaseService) registry.lookup("TestCaseService");
 
@@ -155,17 +150,17 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
             if (testCases == null) testCases = new ArrayList<>();
 
-            // 4️⃣ Create task
+            // Create task
             ScriptTask task = new ScriptTask(
                     codeArea.getText(),
                     currentLang,
                     testCases
             );
 
-            // 5️⃣ Contest callback
+            // Contest callback
             AgentCallbackImpl callback = new AgentCallbackImpl(
                     outputArea,
-                    contestId,                 // IMPORTANT
+                    contestId,
                     currentUser.getId(),
                     currentProblemId,
                     currentLang,

@@ -1,4 +1,4 @@
-package com.rmi.coding.platform.client;
+package com.rmi.coding.platform.client.gui;
 
 import com.rmi.coding.platform.model.Problem;
 import com.rmi.coding.platform.model.TestCase;

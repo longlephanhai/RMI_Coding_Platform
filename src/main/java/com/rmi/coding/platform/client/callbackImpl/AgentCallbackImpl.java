@@ -1,7 +1,8 @@
-package com.rmi.coding.platform.client;
+package com.rmi.coding.platform.client.callbackImpl;
 
 import com.rmi.coding.platform.agents.result.ScriptResult;
 import com.rmi.coding.platform.common.AgentCallback;
+import com.rmi.coding.platform.service.ScoreboardService;
 import com.rmi.coding.platform.service.SubmissionService;
 
 import javax.swing.*;
@@ -71,7 +72,11 @@ public class AgentCallbackImpl extends UnicastRemoteObject implements AgentCallb
                     sourceCode,
                     result
             );
+            Registry reg = LocateRegistry.getRegistry();
+            ScoreboardService service =
+                    (ScoreboardService) reg.lookup("ScoreboardService");
 
+            service.notifyScoreboardChanged(contestId);
         } catch (Exception ex) {
             SwingUtilities.invokeLater(() ->
                     outputArea.append("\n[Save Error] " + ex.getMessage())

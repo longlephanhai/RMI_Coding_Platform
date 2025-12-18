@@ -6,6 +6,8 @@ import com.rmi.coding.platform.repository.SubmissionRepository;
 import com.rmi.coding.platform.agents.result.ScriptResult;
 
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
 import java.util.List;

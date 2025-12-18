@@ -1,5 +1,6 @@
 package com.rmi.coding.platform.client;
 
+import com.rmi.coding.platform.client.gui.ClientGUI;
 import com.rmi.coding.platform.service.UserService;
 
 import java.rmi.registry.LocateRegistry;
@@ -13,7 +14,6 @@ public class ClientMain {
 
             System.out.println("Connected to RMI server");
 
-            // Tạo GUI chính, truyền UserService
             ClientGUI clientGUI = new ClientGUI(userService);
             clientGUI.setVisible(true);
 

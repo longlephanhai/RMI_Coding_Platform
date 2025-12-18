@@ -1,6 +1,5 @@
 package com.rmi.coding.platform.client.compponents;
 
-import com.rmi.coding.platform.model.ContestParticipant;
 import com.rmi.coding.platform.model.Problem;
 import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.ContestParticipantService;
@@ -24,10 +23,6 @@ public class ContestDetailPanel extends JPanel {
     private JTable problemTable;
     private DefaultTableModel problemModel;
 
-    private DefaultTableModel participantModel;
-
-    private Timer pollingTimer;
-
     public ContestDetailPanel(int contestId, User user) {
         this.contestId = contestId;
         this.user = user;
@@ -43,8 +38,6 @@ public class ContestDetailPanel extends JPanel {
 
         autoJoinContest();
         loadProblems();
-        loadParticipants();
-        startPolling();
     }
 
     // ================= MAIN LAYOUT =================
@@ -53,11 +46,11 @@ public class ContestDetailPanel extends JPanel {
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 createProblemPanel(),
-                createParticipantPanel()
+                new ScoreboardPanel(contestId) // ✅ SCOREBOARD Ở ĐÂY
         );
 
         splitPane.setDividerLocation(650);
-        splitPane.setResizeWeight(0.7);
+        splitPane.setResizeWeight(0.6);
         splitPane.setOneTouchExpandable(true);
 
         return splitPane;
@@ -112,49 +105,6 @@ public class ContestDetailPanel extends JPanel {
         }
     }
 
-    // ================= PARTICIPANTS =================
-
-    private JPanel createParticipantPanel() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
-
-        JLabel label = new JLabel("Participants");
-        label.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        panel.add(label, BorderLayout.NORTH);
-
-        participantModel = new DefaultTableModel(
-                new String[]{"User ID", "Joined At"}, 0
-        );
-
-        // ===== Participants =====
-        JTable participantTable = new JTable(participantModel);
-        participantTable.setRowHeight(26);
-
-        panel.add(new JScrollPane(participantTable), BorderLayout.CENTER);
-        return panel;
-    }
-
-    private void loadParticipants() {
-        try {
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
-            ContestParticipantService service =
-                    (ContestParticipantService)
-                            registry.lookup("ContestParticipantService");
-
-            List<ContestParticipant> list =
-                    service.getParticipants(contestId);
-
-            participantModel.setRowCount(0);
-            for (ContestParticipant cp : list) {
-                participantModel.addRow(new Object[]{
-                        cp.getUserId(),
-                        cp.getJoinedAt()
-                });
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     // ================= AUTO JOIN =================
 
     private void autoJoinContest() {
@@ -168,19 +118,6 @@ public class ContestDetailPanel extends JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    // ================= POLLING =================
-
-    private void startPolling() {
-        pollingTimer = new Timer(3000, e -> loadParticipants());
-        pollingTimer.start();
-    }
-
-    @Override
-    public void removeNotify() {
-        super.removeNotify();
-        if (pollingTimer != null) pollingTimer.stop();
     }
 
     // ================= BUTTONS =================
@@ -235,8 +172,8 @@ public class ContestDetailPanel extends JPanel {
 
             SwingUtilities.invokeLater(() -> {
                 JFrame frame = new JFrame("Problem: " + title);
-                frame.setSize(1000, 700);
-                frame.setLocationRelativeTo(null);
+                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
                 try {
                     Registry registry =

@@ -2,7 +2,7 @@ package com.rmi.coding.platform.client.compponents;
 
 import com.rmi.coding.platform.agents.GenericAgent;
 import com.rmi.coding.platform.agents.tasks.ScriptTask;
-import com.rmi.coding.platform.client.AgentCallbackImpl;
+import com.rmi.coding.platform.client.callbackImpl.AgentCallbackImpl;
 import com.rmi.coding.platform.model.TestCase;
 import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.AgentService;
