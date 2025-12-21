@@ -97,6 +97,7 @@ public class MiniScriptIDEPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setBackground(color);
         btn.setForeground(Color.WHITE);
+        btn.setForeground(Color.WHITE);
         btn.setPreferredSize(new Dimension(100, 32));
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         return btn;
