@@ -3,6 +3,7 @@ package com.rmi.coding.platform.client.compponents;
 import com.rmi.coding.platform.agents.GenericAgent;
 import com.rmi.coding.platform.agents.tasks.ScriptTask;
 import com.rmi.coding.platform.client.callbackImpl.AgentCallbackImpl;
+import com.rmi.coding.platform.model.Contest;
 import com.rmi.coding.platform.model.TestCase;
 import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.AgentService;
@@ -19,6 +20,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
@@ -26,21 +28,21 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
     private RSyntaxTextArea codeArea;
     private JComboBox<String> langCombo;
-    private Map<String, String> codeMap;
-    private String currentLang;
-
-    private JButton runButton;
-    private JButton clearButton;
-    private JButton themeButton;
     private JTextArea outputArea;
+    private JButton runButton, clearButton, themeButton;
 
     private boolean darkMode = false;
+    private boolean editorLocked = false;
 
-    private int currentProblemId;
     private final int contestId;
+    private int currentProblemId;
     private final User currentUser;
 
+    private final Map<String, String> codeMap = new HashMap<>();
     private final Map<String, String> starterCodeMap = new HashMap<>();
+    private String currentLang = "python";
+
+    private Timer contestStatusTimer;
 
     public MiniScriptIDEContestPanel(User user, int contestId) {
         this.currentUser = user;
@@ -48,17 +50,14 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
         initComponents();
         setupLayout();
-        initializeDefaults();
         applyLightTheme();
+        startContestStatusWatcher();
     }
 
+    /* ================= UI INIT ================= */
 
     private void initComponents() {
-        codeMap = new HashMap<>();
-        currentLang = "python";
-
         langCombo = new JComboBox<>(new String[]{"Python", "JavaScript"});
-        langCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         langCombo.addActionListener(this::handleLanguageChange);
 
         themeButton = new JButton("Dark");
@@ -66,9 +65,7 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
         codeArea = new RSyntaxTextArea();
         codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
-        codeArea.setCodeFoldingEnabled(true);
         codeArea.setFont(new Font("Consolas", Font.PLAIN, 15));
-        codeArea.setTabSize(4);
 
         runButton = styledButton("Submit", new Color(46, 204, 113));
         clearButton = styledButton("Reset", new Color(231, 76, 60));
@@ -76,25 +73,24 @@ public class MiniScriptIDEContestPanel extends JPanel {
         runButton.addActionListener(e -> handleSubmit());
         clearButton.addActionListener(e -> handleClear());
 
-        outputArea = new JTextArea(10, 80);
+        outputArea = new JTextArea(8, 80);
         outputArea.setEditable(false);
-        outputArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        outputArea.setFont(new Font("Consolas", Font.PLAIN, 13));
     }
 
     private JButton styledButton(String text, Color color) {
         JButton btn = new JButton(text);
         btn.setBackground(color);
         btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btn.setFocusPainted(false);
         return btn;
     }
 
     private void setupLayout() {
         setLayout(new BorderLayout(8, 8));
-        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
         top.add(new JLabel("Language:"));
         top.add(langCombo);
         top.add(runButton);
@@ -102,22 +98,61 @@ public class MiniScriptIDEContestPanel extends JPanel {
         top.add(themeButton);
 
         add(top, BorderLayout.NORTH);
-
         add(new RTextScrollPane(codeArea), BorderLayout.CENTER);
         add(new JScrollPane(outputArea), BorderLayout.SOUTH);
     }
 
-    private void initializeDefaults() {
-        codeMap.put(currentLang, "");
+    /* ================= REALTIME CONTEST WATCHER ================= */
+
+    private void startContestStatusWatcher() {
+        contestStatusTimer = new Timer(1000, e -> {
+            try {
+                Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+                ContestService contestService =
+                        (ContestService) registry.lookup("ContestService");
+
+                Contest contest = contestService.getContestById(contestId);
+                LocalDateTime now = LocalDateTime.now();
+
+                if (now.isBefore(contest.getStartTime())) {
+                    lockEditor("Contest has not started");
+                } else if (now.isAfter(contest.getEndTime())) {
+                    lockEditor("Contest has ended");
+                } else {
+                    unlockEditor();
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        contestStatusTimer.start();
     }
 
+    private void lockEditor(String reason) {
+        if (editorLocked) return;
+
+        editorLocked = true;
+        runButton.setEnabled(false);
+        clearButton.setEnabled(false);
+        codeArea.setEditable(false);
+
+        outputArea.append("\n[Contest] " + reason + ". Editor locked.\n");
+    }
+
+    private void unlockEditor() {
+        if (!editorLocked) return;
+
+        editorLocked = false;
+        runButton.setEnabled(true);
+        clearButton.setEnabled(true);
+        codeArea.setEditable(true);
+    }
+
+    /* ================= SUBMIT ================= */
 
     private void handleSubmit() {
-        runButton.setEnabled(false);
-        new Timer(3000, e -> runButton.setEnabled(true)).start();
-
-        codeMap.put(currentLang, codeArea.getText());
-        outputArea.setText("");
+        if (editorLocked) return;
 
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
@@ -130,7 +165,7 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
             if (!contestService.checkStatusContest(contestId)) {
                 JOptionPane.showMessageDialog(this,
-                        "Contest has ended or not started",
+                        "Contest is not active",
                         "Submit blocked",
                         JOptionPane.WARNING_MESSAGE);
                 return;
@@ -138,7 +173,7 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
             if (!participantService.isUserJoined(contestId, currentUser.getId())) {
                 JOptionPane.showMessageDialog(this,
-                        "You must join contest before submitting",
+                        "You must join contest first",
                         "Submit blocked",
                         JOptionPane.WARNING_MESSAGE);
                 return;
@@ -150,16 +185,12 @@ public class MiniScriptIDEContestPanel extends JPanel {
             List<TestCase> testCases =
                     testCaseService.getTestCasesByProblemId(currentProblemId);
 
-            if (testCases == null) testCases = new ArrayList<>();
-
-            // Create task
             ScriptTask task = new ScriptTask(
                     codeArea.getText(),
                     currentLang,
                     testCases
             );
 
-            // Contest callback
             AgentCallbackImpl callback = new AgentCallbackImpl(
                     outputArea,
                     contestId,
@@ -174,41 +205,35 @@ public class MiniScriptIDEContestPanel extends JPanel {
 
             agentService.submitAgent(new GenericAgent(task), callback);
 
-            outputArea.setText("[Contest] Submission sent...");
+            outputArea.setText("[Contest] Submission sent...\n");
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             outputArea.setText("[Error] " + ex.getMessage());
         }
     }
 
+    /* ================= HELPERS ================= */
+
     private void handleClear() {
+        if (editorLocked) return;
+
         String starter = starterCodeMap.get(currentLang);
-
-        if (starter != null) {
-            codeArea.setText(starter);
-            codeMap.put(currentLang, starter);
-        } else {
-            codeArea.setText("");
-            codeMap.put(currentLang, "");
-        }
-
-        outputArea.setText("");
+        codeArea.setText(starter != null ? starter : "");
     }
 
     private void handleLanguageChange(ActionEvent e) {
-        String next = ((String) langCombo.getSelectedItem()).toLowerCase();
         codeMap.put(currentLang, codeArea.getText());
-        currentLang = next;
+        currentLang = ((String) langCombo.getSelectedItem()).toLowerCase();
         codeArea.setText(codeMap.getOrDefault(currentLang, ""));
         setSyntax(currentLang);
     }
 
     private void setSyntax(String lang) {
-        if ("python".equals(lang))
-            codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
-        else
-            codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+        codeArea.setSyntaxEditingStyle(
+                "python".equals(lang)
+                        ? SyntaxConstants.SYNTAX_STYLE_PYTHON
+                        : SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT
+        );
     }
 
     private void toggleTheme() {
@@ -233,17 +258,15 @@ public class MiniScriptIDEContestPanel extends JPanel {
         themeButton.setText("Dark");
     }
 
-    public void setStarterCode(Map<String, String> starterCode) {
-        if (starterCode == null || starterCode.isEmpty()) return;
+    /* ================= PUBLIC API ================= */
 
+    public void setStarterCode(Map<String, String> starterCode) {
         starterCodeMap.clear();
         codeMap.clear();
-
         starterCode.forEach((k, v) -> {
             starterCodeMap.put(k.toLowerCase(), v);
             codeMap.put(k.toLowerCase(), v);
         });
-
         codeArea.setText(codeMap.getOrDefault(currentLang, ""));
     }
 
