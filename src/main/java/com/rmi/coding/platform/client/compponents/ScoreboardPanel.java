@@ -63,6 +63,15 @@ public class ScoreboardPanel extends JPanel {
         try {
             List<Scoreboard> rows =
                     scoreboardService.getScoreboard(contestId);
+            rows.sort((a, b) -> {
+                int cmp = Integer.compare(
+                        b.getTotalScore(),
+                        a.getTotalScore()
+                );
+                if (cmp != 0) return cmp;
+
+                return a.getUsername().compareToIgnoreCase(b.getUsername());
+            });
 
             refreshTable(rows);
 

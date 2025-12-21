@@ -19,9 +19,10 @@ public class ContestDetailPanel extends JPanel {
     private final int contestId;
     private final User user;
 
-    // ===== Problems =====
     private JTable problemTable;
     private DefaultTableModel problemModel;
+
+    private boolean contestRunning = false;
 
     public ContestDetailPanel(int contestId, User user) {
         this.contestId = contestId;
@@ -40,13 +41,11 @@ public class ContestDetailPanel extends JPanel {
         loadProblems();
     }
 
-    // ================= MAIN LAYOUT =================
-
     private JComponent createMainContent() {
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 createProblemPanel(),
-                new ScoreboardPanel(contestId) // ✅ SCOREBOARD Ở ĐÂY
+                new ScoreboardPanel(contestId)
         );
 
         splitPane.setDividerLocation(650);
@@ -55,8 +54,6 @@ public class ContestDetailPanel extends JPanel {
 
         return splitPane;
     }
-
-    // ================= PROBLEMS =================
 
     private JPanel createProblemPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
@@ -92,20 +89,23 @@ public class ContestDetailPanel extends JPanel {
             ContestService contestService =
                     (ContestService) registry.lookup("ContestService");
 
+            contestRunning = contestService.checkStatusContest(contestId);
+
             List<Problem> problems = contestService.getProblems(contestId);
 
             problemModel.setRowCount(0);
             for (Problem p : problems) {
                 problemModel.addRow(new Object[]{
-                        p.getId(), p.getTitle(), p.getDifficulty(), "Open"
+                        p.getId(),
+                        p.getTitle(),
+                        p.getDifficulty(),
+                        contestRunning ? "Open" : "Ended"
                 });
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    // ================= AUTO JOIN =================
 
     private void autoJoinContest() {
         try {
@@ -120,9 +120,8 @@ public class ContestDetailPanel extends JPanel {
         }
     }
 
-    // ================= BUTTONS =================
+    class ButtonRenderer extends JButton implements TableCellRenderer {
 
-    static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
         }
@@ -133,9 +132,17 @@ public class ContestDetailPanel extends JPanel {
                 boolean isSelected, boolean hasFocus,
                 int row, int column
         ) {
-            setText("Open");
-            setBackground(new Color(66, 133, 244));
-            setForeground(Color.WHITE);
+            if (!contestRunning) {
+                setText("Ended");
+                setEnabled(false);
+                setBackground(Color.LIGHT_GRAY);
+                setForeground(Color.DARK_GRAY);
+            } else {
+                setText("Open");
+                setEnabled(true);
+                setBackground(new Color(66, 133, 244));
+                setForeground(Color.WHITE);
+            }
             return this;
         }
     }
@@ -148,9 +155,7 @@ public class ContestDetailPanel extends JPanel {
         public ButtonEditor(JCheckBox checkBox) {
             super(checkBox);
 
-            button = new JButton("Open");
-            button.setBackground(new Color(66, 133, 244));
-            button.setForeground(Color.WHITE);
+            button = new JButton();
             button.setOpaque(true);
 
             button.addActionListener(e -> fireEditingStopped());
@@ -162,11 +167,34 @@ public class ContestDetailPanel extends JPanel {
                 boolean isSelected, int row, int column
         ) {
             this.row = row;
+
+            if (!contestRunning) {
+                button.setText("Ended");
+                button.setEnabled(false);
+                button.setBackground(Color.LIGHT_GRAY);
+                button.setForeground(Color.DARK_GRAY);
+            } else {
+                button.setText("Open");
+                button.setEnabled(true);
+                button.setBackground(new Color(66, 133, 244));
+                button.setForeground(Color.WHITE);
+            }
+
             return button;
         }
 
         @Override
         public Object getCellEditorValue() {
+            if (!contestRunning) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Contest đã kết thúc. Không thể mở bài.",
+                        "Thông báo",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return "Ended";
+            }
+
             int problemId = (int) problemTable.getValueAt(row, 0);
             String title = (String) problemTable.getValueAt(row, 1);
 

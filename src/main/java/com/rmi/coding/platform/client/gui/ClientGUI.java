@@ -208,32 +208,14 @@ public class ClientGUI extends JFrame {
 
                     int id = (int) contestTable.getValueAt(row, 0);
                     String title = (String) contestTable.getValueAt(row, 1);
-                    String status = (String) contestTable.getValueAt(row, 4);
-
-                    switch (status) {
-                        case "Not started":
-                            JOptionPane.showMessageDialog(btn,
-                                    "Contest has not started yet!");
-                            break;
-
-                        case "Ended":
-                            JOptionPane.showMessageDialog(btn,
-                                    "Contest is already finished.");
-                            break;
-
-                        case "Running":
-                            SwingUtilities.invokeLater(() -> {
-                                JFrame frame = new JFrame("Contest: " + title);
-                                frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                                frame.setSize(900, 600);
-                                frame.setLocationRelativeTo(null);
-
-                                frame.add(new ContestDetailPanel(id, loggedUser));
-
-                                frame.setVisible(true);
-                            });
-                            break;
-                    }
+                    SwingUtilities.invokeLater(() -> {
+                        JFrame frame = new JFrame("Contest: " + title);
+                        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                        frame.setSize(900, 600);
+                        frame.setLocationRelativeTo(null);
+                        frame.add(new ContestDetailPanel(id, loggedUser));
+                        frame.setVisible(true);
+                    });
                 }
                 clicked = false;
                 return "Join";
