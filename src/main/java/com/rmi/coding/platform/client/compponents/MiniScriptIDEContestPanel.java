@@ -42,8 +42,6 @@ public class MiniScriptIDEContestPanel extends JPanel {
     private final Map<String, String> starterCodeMap = new HashMap<>();
     private String currentLang = "python";
 
-    private Timer contestStatusTimer;
-
     public MiniScriptIDEContestPanel(User user, int contestId) {
         this.currentUser = user;
         this.contestId = contestId;
@@ -53,8 +51,6 @@ public class MiniScriptIDEContestPanel extends JPanel {
         applyLightTheme();
         startContestStatusWatcher();
     }
-
-    /* ================= UI INIT ================= */
 
     private void initComponents() {
         langCombo = new JComboBox<>(new String[]{"Python", "JavaScript"});
@@ -102,10 +98,8 @@ public class MiniScriptIDEContestPanel extends JPanel {
         add(new JScrollPane(outputArea), BorderLayout.SOUTH);
     }
 
-    /* ================= REALTIME CONTEST WATCHER ================= */
-
     private void startContestStatusWatcher() {
-        contestStatusTimer = new Timer(1000, e -> {
+        Timer contestStatusTimer = new Timer(1000, e -> {
             try {
                 Registry registry = LocateRegistry.getRegistry("localhost", 1099);
                 ContestService contestService =
