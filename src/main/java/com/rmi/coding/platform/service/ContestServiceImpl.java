@@ -67,8 +67,13 @@ public class ContestServiceImpl extends UnicastRemoteObject implements ContestSe
     }
 
     @Override
-    public Contest getContestById() throws RemoteException {
-        return null;
+    public Contest getContestById(int contestId) throws RemoteException {
+        try {
+            return contestRepository.getContestById(contestId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 

@@ -16,5 +16,5 @@ public interface ContestService extends Remote {
 
     Boolean checkStatusContest(int contestId) throws Exception;
 
-    Contest getContestById() throws RemoteException;
+    Contest getContestById(int contestId) throws RemoteException;
 }

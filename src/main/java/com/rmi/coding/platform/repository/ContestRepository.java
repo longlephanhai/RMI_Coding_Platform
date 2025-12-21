@@ -17,7 +17,6 @@ public class ContestRepository {
         this.connection = connection;
     }
 
-
     public int createContest(Contest contest) throws SQLException {
         String sql = "INSERT INTO contests (title, start_time, end_time) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -66,6 +65,23 @@ public class ContestRepository {
         return contests;
     }
 
+    public Contest getContestById(int contestId) throws SQLException {
+        String sql = "SELECT * FROM contests where id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, contestId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Contest contest = new Contest();
+                contest.setId(rs.getInt("id"));
+                contest.setTitle(rs.getString("title"));
+                contest.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                contest.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                return contest;
+            }
+        }
+        return null;
+    }
+
     public boolean deleteContest(int contestId) throws SQLException {
         String sql = "DELETE FROM contests WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -98,7 +114,6 @@ public class ContestRepository {
         }
     }
 
-    //
     public boolean checkStatusContest(int contestId) throws Exception {
         String sql = """
                     SELECT 1

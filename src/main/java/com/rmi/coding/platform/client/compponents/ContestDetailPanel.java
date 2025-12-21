@@ -1,5 +1,6 @@
 package com.rmi.coding.platform.client.compponents;
 
+import com.rmi.coding.platform.model.Contest;
 import com.rmi.coding.platform.model.Problem;
 import com.rmi.coding.platform.model.User;
 import com.rmi.coding.platform.service.ContestParticipantService;
@@ -12,6 +13,8 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ContestDetailPanel extends JPanel {
@@ -23,6 +26,10 @@ public class ContestDetailPanel extends JPanel {
     private DefaultTableModel problemModel;
 
     private boolean contestRunning = false;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+    private final JLabel timeLabel = new JLabel();
 
     public ContestDetailPanel(int contestId, User user) {
         this.contestId = contestId;
@@ -35,9 +42,15 @@ public class ContestDetailPanel extends JPanel {
         title.setFont(new Font("Arial", Font.BOLD, 22));
         add(title, BorderLayout.NORTH);
 
+        timeLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(timeLabel, BorderLayout.SOUTH);
+
         add(createMainContent(), BorderLayout.CENTER);
 
         autoJoinContest();
+        loadContest();
+        startCountdown();
         loadProblems();
     }
 
@@ -83,13 +96,30 @@ public class ContestDetailPanel extends JPanel {
         return panel;
     }
 
-    private void loadProblems() {
+    private void loadContest() {
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
             ContestService contestService =
                     (ContestService) registry.lookup("ContestService");
 
-            contestRunning = contestService.checkStatusContest(contestId);
+            Contest contest = contestService.getContestById(contestId);
+
+            startTime = contest.getStartTime();
+            endTime   = contest.getEndTime();
+
+            LocalDateTime now = LocalDateTime.now();
+            contestRunning = now.isAfter(startTime) && now.isBefore(endTime);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadProblems() {
+        try {
+            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            ContestService contestService =
+                    (ContestService) registry.lookup("ContestService");
 
             List<Problem> problems = contestService.getProblems(contestId);
 
@@ -105,6 +135,38 @@ public class ContestDetailPanel extends JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void startCountdown() {
+        Timer timer = new Timer(1000, e -> {
+            LocalDateTime now = LocalDateTime.now();
+
+            if (now.isBefore(startTime)) {
+                timeLabel.setText("⏳ Contest chưa bắt đầu");
+                return;
+            }
+
+            Duration d = Duration.between(now, endTime);
+
+            if (d.isZero() || d.isNegative()) {
+                contestRunning = false;
+                timeLabel.setText("Contest đã kết thúc");
+                problemTable.repaint();
+                ((Timer) e.getSource()).stop();
+                return;
+            }
+
+            long h = d.toHours();
+            long m = d.toMinutes() % 60;
+            long s = d.getSeconds() % 60;
+
+            contestRunning = true;
+            timeLabel.setText(
+                    String.format("Time left: %02d:%02d:%02d", h, m, s)
+            );
+            problemTable.repaint();
+        });
+        timer.start();
     }
 
     private void autoJoinContest() {
@@ -154,10 +216,8 @@ public class ContestDetailPanel extends JPanel {
 
         public ButtonEditor(JCheckBox checkBox) {
             super(checkBox);
-
             button = new JButton();
             button.setOpaque(true);
-
             button.addActionListener(e -> fireEditingStopped());
         }
 
@@ -179,7 +239,6 @@ public class ContestDetailPanel extends JPanel {
                 button.setBackground(new Color(66, 133, 244));
                 button.setForeground(Color.WHITE);
             }
-
             return button;
         }
 
@@ -188,8 +247,8 @@ public class ContestDetailPanel extends JPanel {
             if (!contestRunning) {
                 JOptionPane.showMessageDialog(
                         null,
-                        "Contest đã kết thúc. Không thể mở bài.",
-                        "Thông báo",
+                        "Contest đã kết thúc",
+                        "Blocked",
                         JOptionPane.WARNING_MESSAGE
                 );
                 return "Ended";
@@ -226,8 +285,8 @@ public class ContestDetailPanel extends JPanel {
                     frame.add(panel);
                     frame.setVisible(true);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             });
 
