@@ -1,26 +1,29 @@
 package com.rmi.coding.platform.service;
 
 import com.rmi.coding.platform.config.DatabaseConnection;
+import com.rmi.coding.platform.model.Contest;
 import com.rmi.coding.platform.model.Submission;
+import com.rmi.coding.platform.repository.ContestRepository;
 import com.rmi.coding.platform.repository.SubmissionRepository;
 import com.rmi.coding.platform.agents.result.ScriptResult;
 
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Connection;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class SubmissionServiceImpl extends UnicastRemoteObject implements SubmissionService {
 
     private final SubmissionRepository submissionRepository;
+    private final ContestRepository contestRepository;
 
     public SubmissionServiceImpl() throws RemoteException {
         super();
         try {
             Connection conn = DatabaseConnection.getConnection();
             submissionRepository = new SubmissionRepository(conn);
+            contestRepository = new ContestRepository(conn);
         } catch (Exception e) {
             throw new RemoteException("DB Connection error", e);
         }
@@ -40,6 +43,19 @@ public class SubmissionServiceImpl extends UnicastRemoteObject implements Submis
     public Submission submitInContest(int contestId, int userId, int problemId, String language, String code)
             throws RemoteException {
         try {
+            Contest contest = contestRepository.getContestById(contestId);
+            if (contest == null) {
+                throw new RemoteException("Contest not found");
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            if (now.isBefore(contest.getStartTime())) {
+                throw new RemoteException("Contest has not started yet");
+            }
+
+            if (now.isAfter(contest.getEndTime())) {
+                throw new RemoteException("Contest has ended");
+            }
             Submission submission = new Submission(contestId, userId, problemId, language, code);
             return submissionRepository.save(submission);
         } catch (Exception e) {

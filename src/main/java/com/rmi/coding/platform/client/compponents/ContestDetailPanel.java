@@ -105,7 +105,7 @@ public class ContestDetailPanel extends JPanel {
             Contest contest = contestService.getContestById(contestId);
 
             startTime = contest.getStartTime();
-            endTime   = contest.getEndTime();
+            endTime = contest.getEndTime();
 
             LocalDateTime now = LocalDateTime.now();
             contestRunning = now.isAfter(startTime) && now.isBefore(endTime);
@@ -152,9 +152,13 @@ public class ContestDetailPanel extends JPanel {
                 contestRunning = false;
                 timeLabel.setText("Contest đã kết thúc");
                 problemTable.repaint();
+
+                showToast("Contest đã kết thúc. Submit đã bị khóa.");
+
                 ((Timer) e.getSource()).stop();
                 return;
             }
+
 
             long h = d.toHours();
             long m = d.toMinutes() % 60;
@@ -293,4 +297,31 @@ public class ContestDetailPanel extends JPanel {
             return "Open";
         }
     }
+
+    private void showToast(String message) {
+        JWindow toast = new JWindow();
+
+        JPanel panel = new JPanel();
+        panel.setBackground(new Color(50, 50, 50));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+
+        JLabel label = new JLabel(message);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+        panel.add(label);
+        toast.add(panel);
+        toast.pack();
+
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = screen.width - toast.getWidth() - 20;
+        int y = 40;
+        toast.setLocation(x, y);
+
+        toast.setAlwaysOnTop(true);
+        toast.setVisible(true);
+
+        new Timer(4000, e -> toast.dispose()).start();
+    }
+
 }
