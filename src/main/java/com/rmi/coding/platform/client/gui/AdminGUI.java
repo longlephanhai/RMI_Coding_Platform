@@ -25,7 +25,11 @@ public class AdminGUI extends JFrame {
         this.problemService = problemService;
 
         setTitle("Admin Panel");
-        setSize(1000, 700);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setVisible(true);
+
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());

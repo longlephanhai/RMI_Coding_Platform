@@ -36,6 +36,9 @@ public class MiniScriptIDEPanel extends JPanel {
     private int currentProblemId;
     private final User currentUser;
 
+    private final Map<String, String> starterCodeMap = new HashMap<>();
+
+
     public MiniScriptIDEPanel(User user) {
         this.currentUser = user;
         initComponents();
@@ -164,7 +167,7 @@ public class MiniScriptIDEPanel extends JPanel {
     }
 
     private void handleLanguageChange(ActionEvent e) {
-        String selected = ((String) langCombo.getSelectedItem()).toLowerCase();
+        String selected = ((String) Objects.requireNonNull(langCombo.getSelectedItem())).toLowerCase();
 
         if (selected.equals(currentLang)) return;
 
@@ -216,20 +219,34 @@ public class MiniScriptIDEPanel extends JPanel {
     }
 
     private void handleClear() {
-        codeArea.setText("");
-        codeMap.put(currentLang, "");
+        String starter = starterCodeMap.get(currentLang);
+
+        if (starter != null) {
+            codeArea.setText(starter);
+            codeMap.put(currentLang, starter);
+        } else {
+            codeArea.setText("");
+            codeMap.put(currentLang, "");
+        }
+
         outputArea.setText("");
     }
+
 
     public void setStarterCode(Map<String, String> starterCode) {
         if (starterCode == null || starterCode.isEmpty()) return;
 
+        starterCodeMap.clear();
         codeMap.clear();
-        starterCode.forEach((k, v) -> codeMap.put(k.toLowerCase(), v));
 
-        if (codeMap.containsKey(currentLang))
-            codeArea.setText(codeMap.get(currentLang));
+        starterCode.forEach((k, v) -> {
+            starterCodeMap.put(k.toLowerCase(), v);
+            codeMap.put(k.toLowerCase(), v);
+        });
+
+        codeArea.setText(codeMap.getOrDefault(currentLang, ""));
     }
+
 
     public void setCurrentProblemId(int id) {
         this.currentProblemId = id;

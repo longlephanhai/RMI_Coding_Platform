@@ -40,6 +40,8 @@ public class MiniScriptIDEContestPanel extends JPanel {
     private final int contestId;
     private final User currentUser;
 
+    private final Map<String, String> starterCodeMap = new HashMap<>();
+
     public MiniScriptIDEContestPanel(User user, int contestId) {
         this.currentUser = user;
         this.contestId = contestId;
@@ -181,8 +183,16 @@ public class MiniScriptIDEContestPanel extends JPanel {
     }
 
     private void handleClear() {
-        codeArea.setText("");
-        codeMap.put(currentLang, "");
+        String starter = starterCodeMap.get(currentLang);
+
+        if (starter != null) {
+            codeArea.setText(starter);
+            codeMap.put(currentLang, starter);
+        } else {
+            codeArea.setText("");
+            codeMap.put(currentLang, "");
+        }
+
         outputArea.setText("");
     }
 
@@ -223,12 +233,17 @@ public class MiniScriptIDEContestPanel extends JPanel {
         themeButton.setText("Dark");
     }
 
-    /* ================= API ================= */
-
     public void setStarterCode(Map<String, String> starterCode) {
-        if (starterCode == null) return;
+        if (starterCode == null || starterCode.isEmpty()) return;
+
+        starterCodeMap.clear();
         codeMap.clear();
-        starterCode.forEach((k, v) -> codeMap.put(k.toLowerCase(), v));
+
+        starterCode.forEach((k, v) -> {
+            starterCodeMap.put(k.toLowerCase(), v);
+            codeMap.put(k.toLowerCase(), v);
+        });
+
         codeArea.setText(codeMap.getOrDefault(currentLang, ""));
     }
 

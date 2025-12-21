@@ -25,7 +25,11 @@ public class ClientGUI extends JFrame {
     public ClientGUI(UserService userService) {
 
         setTitle("Coding Platform");
-        setSize(1000, 700);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setVisible(true);
+
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(true);

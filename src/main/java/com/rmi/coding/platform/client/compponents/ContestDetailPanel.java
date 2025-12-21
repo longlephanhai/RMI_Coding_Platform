@@ -280,25 +280,32 @@ public class ContestDetailPanel extends JPanel {
 
 
 
-                    MiniScriptIDEContestPanel panel =
+                    MiniScriptIDEContestPanel idePanel =
                             new MiniScriptIDEContestPanel(user, contestId);
 
                     assert problem != null;
+
+// ===== Description =====
                     JTextArea descArea = new JTextArea(problem.getDescription());
                     descArea.setLineWrap(true);
                     descArea.setWrapStyleWord(true);
                     descArea.setEditable(false);
                     descArea.setFont(new Font("Arial", Font.PLAIN, 14));
                     descArea.setBackground(new Color(245, 245, 245));
+
                     JScrollPane descScroll = new JScrollPane(descArea);
                     descScroll.setBorder(BorderFactory.createTitledBorder("Description"));
-                    descScroll.setPreferredSize(new Dimension(880, 150));
-                    panel.add(descScroll, BorderLayout.NORTH);
+                    descScroll.setPreferredSize(new Dimension(1000, 160));
 
-                    panel.setStarterCode(problem.getStarterCode());
-                    panel.setCurrentProblemId(problem.getId());
+// ===== Wrapper =====
+                    JPanel wrapper = new JPanel(new BorderLayout(5, 5));
+                    wrapper.add(descScroll, BorderLayout.NORTH);
+                    wrapper.add(idePanel, BorderLayout.CENTER);
 
-                    frame.add(panel);
+                    idePanel.setStarterCode(problem.getStarterCode());
+                    idePanel.setCurrentProblemId(problem.getId());
+
+                    frame.add(wrapper);
                     frame.setVisible(true);
 
                 } catch (Exception ex) {
